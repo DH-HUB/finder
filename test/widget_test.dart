@@ -3,10 +3,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:finder/screens/bachelors_master.dart';
 import 'package:finder/widgets/bachelor_preview.dart';
 import 'package:finder/screens/bachelor_details.dart';
+import 'package:finder/models/bachelor.dart';
 
 void main() {
   testWidgets('Vérification du rendu de BachelorsMaster',
       (WidgetTester tester) async {
+    // Créer une liste fictive de Bachelors pour tester le Provider
+    final bachelor1 = Bachelor(
+      firstname: 'Adam',
+      lastname: 'Dupont',
+      gender: Gender.Male,
+      avatar: 'assets/images/man-1.png',
+      searchFor: [Gender.Male],
+      job: 'Ingénieur logiciel',
+      description: 'Passionné de technologie et de programmation.',
+    );
+    final bachelor2 = Bachelor(
+      firstname: 'Asmaa',
+      lastname: 'Martin',
+      gender: Gender.Female,
+      avatar: 'assets/images/woman-1.png',
+      searchFor: [Gender.Female],
+      job: 'Designer graphique',
+      description: 'Créative et passionnée par le design visuel.',
+    );
+
     // Construire un WidgetTester pour tester les widgets
     await tester.pumpWidget(
       MaterialApp(
@@ -46,21 +67,16 @@ void main() {
     expect(find.text('Job'), findsOneWidget);
     expect(find.text('Description'), findsOneWidget);
 
-    // Vérifiez que les informations du premier Bachelor (index 0) sont affichées
-    expect(find.text('Adam'), findsOneWidget);
-    expect(find.text('Job'), findsOneWidget);
-    expect(find.text('Description'), findsOneWidget);
-
     // Vérifiez que le widget BachelorsMaster est bien rendu
     expect(find.byType(BachelorsMaster), findsOneWidget);
-// Vérifiez que le bouton de like est présent
+    // Vérifiez que le bouton de like est présent
     expect(find.byIcon(Icons.favorite_border), findsOneWidget);
 
     // Appuyez sur le bouton de like
     await tester.tap(find.byIcon(Icons.favorite_border));
     await tester.pumpAndSettle();
 
-    // Vérifiez que l'icône de like est maintenant rempli (liké)
+    // Vérifiez que l'icône de like est maintenant remplie (liké)
     expect(find.byIcon(Icons.favorite), findsOneWidget);
 
     // Revenez à l'écran BachelorsMaster
@@ -72,5 +88,35 @@ void main() {
 
     // Vérifiez que le premier BachelorPreview (index 0) a maintenant l'icône de like remplie (liké)
     expect(find.byIcon(Icons.favorite), findsOneWidget);
+
+    // Test du Provider pour les Bachelors likés
+    expect(
+        BachelorsMaster.of(tester.element(find.byType(BachelorsMaster)))
+            .likedBachelors,
+        contains(bachelor1));
+    expect(
+        BachelorsMaster.of(tester.element(find.byType(BachelorsMaster)))
+            .likedBachelors,
+        contains(bachelor2));
+    expect(
+        BachelorsMaster.of(tester.element(find.byType(BachelorsMaster)))
+            .likedBachelors
+            .length,
+        2);
+
+    // Supprimez un Bachelor de la liste des likés
+    BachelorsMaster.of(tester.element(find.byType(BachelorsMaster)))
+        .removeLikedBachelor(bachelor1);
+
+    // Vérifiez que le Bachelor a bien été supprimé de la liste
+    expect(
+        BachelorsMaster.of(tester.element(find.byType(BachelorsMaster)))
+            .likedBachelors,
+        isNot(contains(bachelor1)));
+    expect(
+        BachelorsMaster.of(tester.element(find.byType(BachelorsMaster)))
+            .likedBachelors
+            .length,
+        1);
   });
 }
